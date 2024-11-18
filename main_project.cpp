@@ -179,13 +179,13 @@ vector<string> process_instruction(const string& line) {
     string token;
     vector<string> result;
 
-    // Split line into tokens
+    // Tokenize the input line and remove any commas
     while (ss >> token) {
-        cout<<token<<" ";
+        // Remove any commas from the token
+        token.erase(remove(token.begin(), token.end(), ','), token.end());
         tokens.push_back(token);
     }
-    
-    
+
     // Check if it's a pseudo-instruction
     if (tokens[0] == "BLTZ" || tokens[0] == "BGEZ") {
         result = handle_pseudo_instruction(tokens);
@@ -197,12 +197,12 @@ vector<string> process_instruction(const string& line) {
         result.push_back(convert_j_type(tokens));
     }
     else {  // I-type
-        cout<<tokens[0]<<endl;
         result.push_back(convert_i_type(tokens));
     }
-    
+
     return result;
 }
+
 
 int main() {
     ifstream infile("assembly_code.txt");  // Input assembly file

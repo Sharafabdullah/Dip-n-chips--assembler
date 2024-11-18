@@ -5,3 +5,5 @@ OR $t0 $t1 $t2
 XOR $t0 $t1 $t2
 NOR $t0 $t1 $t2
 SLT $t0 $t1 $t2
+
+
