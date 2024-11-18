@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <bitset>
+#include <algorithm> // Ensure <algorithm> is included for std::remove
 
 using namespace std;
 
@@ -129,16 +130,34 @@ string convert_r_type(const vector<string>& tokens) {
 
 
 // Convert I-type instruction to binary
+#include <regex> // For pattern matching hexadecimal and binary formats
+
 string convert_i_type(const vector<string>& tokens) {
     string opcode = opcode_map[tokens[0]];
     string rs = register_map[tokens[2]];
     string rt = register_map[tokens[1]];
-    int immediate = stoi(tokens[3]);
-    string imm_bin = int_to_bin(immediate, 16);
-    return opcode + rs + rt + imm_bin;
-
     
+    // Parse the immediate value (supporting decimal, hexadecimal, and binary)
+    string imm_str = tokens[3];
+    int immediate = 0;
+    
+    if (imm_str.find("0x") == 0 || imm_str.find("0X") == 0) {
+        // Hexadecimal (e.g., 0x1A)
+        immediate = stoi(imm_str, nullptr, 16);
+    } else if (imm_str.find("0b") == 0 || imm_str.find("0B") == 0) {
+        // Binary (e.g., 0b1010)
+        immediate = stoi(imm_str.substr(2), nullptr, 2);
+    } else {
+        // Decimal (default case)
+        immediate = stoi(imm_str);
+    }
+
+    // Convert the immediate value to a 16-bit binary string
+    string imm_bin = int_to_bin(immediate, 16);
+
+    return opcode + rs + rt + imm_bin;
 }
+
 
 // Convert J-type instruction to binary
 string convert_j_type(const vector<string>& tokens) {
@@ -182,10 +201,14 @@ vector<string> process_instruction(const string& line) {
     // Tokenize the input line and remove any commas
     while (ss >> token) {
         // Remove any commas from the token
-        token.erase(remove(token.begin(), token.end(), ','), token.end());
+        // token.erase(remove(token.begin(), token.end(), ','), token.end());
+        token.erase(std::remove(token.begin(), token.end(), ','), token.end());
+
         tokens.push_back(token);
     }
-
+    if(tokens[0]=="#"){
+        return result;
+    }
     // Check if it's a pseudo-instruction
     if (tokens[0] == "BLTZ" || tokens[0] == "BGEZ") {
         result = handle_pseudo_instruction(tokens);
