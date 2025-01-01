@@ -48,7 +48,7 @@ string convert_r_type(const vector<string>& tokens) {
         rs = register_map[tokens[2]];
         rt = register_map[tokens[3]];
     }
-
+    cur_instruction++;
     return opcode + rs + rt + rd + shamt + funct;
 }
 
@@ -81,10 +81,6 @@ string convert_i_type(const vector<string>& tokens) {
         rs = register_map[tokens[1]];
         rt = register_map[tokens[2]];
         immediate = labels[tokens[3]] - cur_instruction - 1;
-        if (psuedo_handle){
-            if(immediate > 0) immediate -= 1 * INSTRUCTION_LENGTH;
-            else immediate += 1 * INSTRUCTION_LENGTH;
-        }
     } else {
         // This is a standard immediate instruction (e.g., ADDI, ORI, etc.)
         rs = register_map[tokens[2]];  // Source register
@@ -97,6 +93,7 @@ string convert_i_type(const vector<string>& tokens) {
     cout<<"Psuedo: "<<psuedo_handle<<endl;;
     cout<<opcode <<" "<<rs << " "<<rt<<" "<<imm_bin<<endl;
 
+    cur_instruction++;
     return opcode + rs + rt + imm_bin;
 }
 
@@ -112,13 +109,14 @@ string convert_j_type(const vector<string>& tokens) {
         address = stringToInt(tokens[1]);
     }
     string addr_bin = int_to_bin(address, 26);
+
+    cur_instruction++;
     return opcode + addr_bin;
 }
 
 // Process pseudo-instructions like BLTZ and BGEZ
 vector<string> handle_pseudo_instruction(const vector<string>& tokens) {
     vector<string> machine_code;
-    psuedo_handle = 1;
 
     if (tokens[0] == "BLTZ") {
         // BLTZ $t0, label
@@ -143,7 +141,6 @@ vector<string> handle_pseudo_instruction(const vector<string>& tokens) {
         machine_code.push_back(res);
     }
 
-    psuedo_handle = 0;
     return machine_code;
 }
 
@@ -158,7 +155,6 @@ vector<string> process_instruction(const vector<string>& tokens) {
     // Check if it's a pseudo-instruction
     if (tokens[0] == "BLTZ" || tokens[0] == "BGEZ" || tokens[0] == "NOP") {
         result = handle_pseudo_instruction(tokens);
-        // cur_instruction++;
     }
     else if (opcode_map[tokens[0]] == "000000") {  // R-type
         result.push_back(convert_r_type(tokens));
@@ -173,8 +169,7 @@ vector<string> process_instruction(const vector<string>& tokens) {
         cout<<"Can't Identify at " <<cur_instruction<<endl;
         exit(1);
     }
-    if(tokens[0] == "BLTZ" || tokens[0]=="BGEZ") cur_instruction++;
-    cur_instruction++;
+
     return result;
 }
 
@@ -190,7 +185,6 @@ void second_pass(const vector<vector<string>>& lines) {
         if(line.empty()) continue;
         if(to_uppercase(line[0])==".WORD"){
             for(int i = 1; i<line.size(); i++){
-
                 dataOut.push_back(int_to_bin(stringToInt(line[i]), 32));
             }
         }
@@ -228,12 +222,13 @@ int main(int argc, char* argv[]) {
     int pc = PC_START, DataAddress = DATA_ADDRESS_START;
     while (getline(infile, line)) {
         if (line.empty() || line[0] == '#') continue;
-        if (line.find(".data") != string::npos) {
+        line = to_uppercase(line);
+        if (line.find(".DATA") != string::npos) {
             inDataSection = true;
             inTextSection = false;
             continue;
         }
-        if (line.find(".text") != string::npos) {
+        if (line.find(".TEXT") != string::npos) {
             inDataSection = false;
             inTextSection = true;
             continue;
@@ -251,14 +246,13 @@ int main(int argc, char* argv[]) {
         if(tokens.empty()) continue;
 
         if(inDataSection){
-            // labels[tokens[0].substr(0, tokens[0].length()-1)] = DataAddress++;
             tokens.erase(tokens.begin());
             if(tokens.size()) lines.push_back(tokens);
         }
 
         if(inTextSection) {
+            // It's a label
             if (token.back() == ':') {
-                // It's a label
                 labels[tokens[0].substr(0, tokens[0].length() - 1)] = pc;
                 tokens.erase(tokens.begin());
                 if(tokens.size()){
@@ -268,7 +262,8 @@ int main(int argc, char* argv[]) {
                         pc+= INSTRUCTION_LENGTH;
                     }
                 }
-            } else {
+            } 
+            else {
                 // Non-label line; increment address
                 pc += INSTRUCTION_LENGTH;
                 if(tokens[0]=="BGEZ" || tokens[0]=="BLTZ"){
@@ -290,6 +285,7 @@ int main(int argc, char* argv[]) {
     }
 
     second_pass(lines);
+
     // Write `.text` machine code output
     for (const auto& code : machine_code) {
         textFile << code << endl;

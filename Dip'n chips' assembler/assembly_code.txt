@@ -1,41 +1,49 @@
-.data 
-myArray:   .word 1, 4, 5, 7, 9, 12, 15, 17, 20, 21, 30 
-arraySize: .word 11 
+.text
+main:
+    # Initialize registers with immediate values
+    ADDI $1, $0, -5
+    ADDI $2, $0, 5
+    ADDI $3, $0, 5
+    ADDI $4, $0, 21
 
-.text 
-#Initialization 
-addi $1, $0, 0x0  
-addi $2, $0, 0xB  
-addi $3, $0, 0x7  
+L1: 
+    # Test BEQ #4
+    BEQ $2, $3, L2
+    NOP                    
+    JAL L1
 
-loop: 
-    slt $7, $2, $1 
-    bne $0, $7, notFound         
-    add $4, $2, $1                 
-    srl $5, $4, 1                   
+L2:
+    # Test BNE
+    BNE $2, $3, L3
+    NOP
 
-    lw  $6, 0x0($5)                   
+L3:
+    NOP
 
-    beq $3, $6, found               
-    slt $6, $6, $1          
-    beq $6, $0, leftHalf          
-    j   rightHalf                     
+L4: 
+    #10
+    # Test BLTZ
+    BLTZ $1, L5
+    NOP
+    JAL L4
 
-leftHalf: 
-    add $2, $5, 0xFFFF       
-    j   loop                     
+L5:
+    # Test BGEZ 14
+    BGEZ $2, L6
+    NOP
+    JAL L5
 
-rightHalf: 
-    addi $1, $5, 0x1             
-    j    loop                 
+L6:
+    # Test JAL 18
+    JAL L7
+    NOP
+    JAL L6
 
-found:  
-    add $8, $zero, $5              
-    j finish 
+L7:
+    # Test JR 21
+    JR $4
+    NOP
+    JAL L7
 
-notFound:  
-    addi $8, $0, 0xFFFF          
-    j finish 
-
-finish: 
-    NOP 
+L8:
+    NOP                    
