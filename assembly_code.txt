@@ -1,0 +1,49 @@
+.text
+main:
+    # Initialize registers with immediate values
+    ADDI $1, $0, -5
+    ADDI $2, $0, 5
+    ADDI $3, $0, 5
+    ADDI $4, $0, 21
+
+L1: 
+    # Test BEQ #4
+    BEQ $2, $3, L2
+    NOP                    
+    JAL L1
+
+L2:
+    # Test BNE
+    BNE $2, $3, L3
+    NOP
+
+L3:
+    NOP
+
+L4: 
+    #10
+    # Test BLTZ
+    BLTZ $1, L5
+    NOP
+    JAL L4
+
+L5:
+    # Test BGEZ 14
+    BGEZ $2, L6
+    NOP
+    JAL L5
+
+L6:
+    # Test JAL 18
+    JAL L7
+    NOP
+    JAL L6
+
+L7:
+    # Test JR 21
+    JR $4
+    NOP
+    JAL L7
+
+L8:
+    NOP                    
