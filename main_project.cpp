@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     fs::create_directories(outputDir + "/data");
     fs::create_directories(outputDir + "/text");
 
-    ifstream infile("assembly_code.txt");
+    ifstream infile("./assembly_code.txt");
     ofstream dataFile(outputDir + "/data/data_memory.txt");
     ofstream textFile(outputDir + "/text/machine_code.txt");
     ofstream textHexFile(outputDir + "/text/hex_machine_code.txt");
